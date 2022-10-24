@@ -9,6 +9,7 @@ gemfile do
 end
 
 require "active_support"
+require "active_support/security_utils"
 require "active_support/core_ext"
 
 class AccessCode
@@ -28,7 +29,7 @@ class AccessCode
         other = AccessCode.new(other)
       end
 
-      value == other.value
+      ActiveSupport::SecurityUtils.secure_compare(value, other.value)
     end
   end
 
@@ -123,6 +124,15 @@ RSpec.describe AccessCode do
       expect(AccessCode.new(left).hash).to eq AccessCode.new(left).hash
       expect(AccessCode.new(right).hash).to eq AccessCode.new(right).hash
     end
+  end
+
+  it "uses ActiveSupport::SecurityUtils to compare values" do
+    result = double("compare result")
+    allow(ActiveSupport::SecurityUtils).to receive(:secure_compare).with("foo", "bar").and_return(result)
+
+    comparison = AccessCode.new("foo") == AccessCode.new("bar")
+
+    expect(comparison).to eq result
   end
 
   def present_string
