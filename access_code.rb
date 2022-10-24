@@ -32,6 +32,16 @@ class AccessCode
     end
   end
 
+  alias_method :eql?, :==
+
+  def hash
+    if blank?
+      nil.hash
+    else
+      value.hash
+    end
+  end
+
   protected
 
   attr_reader :value
@@ -78,6 +88,40 @@ RSpec.describe AccessCode do
   it "is equal if the value is present and the same" do
     forall(code: present_string) do |code:|
       expect(AccessCode.new(code)).to eq AccessCode.new(code)
+    end
+  end
+
+  it "is #equal? IFF object identity is the same" do
+    forall(code: present_string) do |code:|
+      item = AccessCode.new(code)
+
+      expect(item).to be_equal(item)
+      expect(item).not_to be_equal(AccessCode.new(code))
+    end
+  end
+
+  it "is represented as a hash correctly" do
+    forall(code: present_string) do |code:|
+      expect(AccessCode.new(code).hash).to eq AccessCode.new(code).hash
+      expect(AccessCode.new(code.downcase).hash).to eq AccessCode.new(code).hash
+      expect(AccessCode.new(code).hash).to eq AccessCode.new(code.downcase).hash
+      expect(AccessCode.new(code.upcase).hash).to eq AccessCode.new(code).hash
+      expect(AccessCode.new(code).hash).to eq AccessCode.new(code.upcase).hash
+      expect(AccessCode.new(code).hash).not_to eq AccessCode.new(" #{code}").hash
+
+      hash = {}
+      hash[AccessCode.new(code)] = 1
+      hash[AccessCode.new(code)] = 2
+
+      expect(hash.keys.count).to eq 1
+    end
+  end
+
+  it "hashes the same for any empty value" do
+    forall(left: empty_value, right: empty_value) do |left:, right:|
+      expect(AccessCode.new(left).hash).to eq AccessCode.new(right).hash
+      expect(AccessCode.new(left).hash).to eq AccessCode.new(left).hash
+      expect(AccessCode.new(right).hash).to eq AccessCode.new(right).hash
     end
   end
 
