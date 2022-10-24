@@ -126,6 +126,14 @@ RSpec.describe AccessCode do
     end
   end
 
+  it "does not equal itself when blank" do
+    forall(left: empty_value, right: empty_value) do |left:, right:|
+      expect(AccessCode.new(left)).not_to eq AccessCode.new(right)
+      expect(AccessCode.new(left)).not_to eq AccessCode.new(left)
+      expect(AccessCode.new(right)).not_to eq AccessCode.new(right)
+    end
+  end
+
   it "uses ActiveSupport::SecurityUtils to compare values" do
     result = double("compare result")
     allow(ActiveSupport::SecurityUtils).to receive(:secure_compare).with("foo", "bar").and_return(result)
